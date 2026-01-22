@@ -1,0 +1,38 @@
+plugins {
+    alias(libs.plugins.android.library)
+}
+
+android {
+    namespace 'com.realengine.offlineuniplugin'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 21
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+dependencies {
+    //必须添加的依赖
+    compileOnly 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+    compileOnly 'androidx.core:core:1.1.0'
+    compileOnly 'androidx.fragment:fragment:1.1.0'
+    compileOnly 'androidx.appcompat:appcompat:1.1.0'
+    compileOnly 'androidx.recyclerview:recyclerview:1.1.0'
+    compileOnly 'com.alibaba:fastjson:1.2.83'
+
+    compileOnly fileTree(include: ['uniapp-v8-release.aar'], dir: '../app/libs')
+}
