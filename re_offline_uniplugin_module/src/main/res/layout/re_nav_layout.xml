@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingDefaultResource"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="44dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="#000000"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <LinearLayout
+        android:id="@+id/re_nav_back"
+        android:layout_width="100dp"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginLeft="10dp">
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@drawable/icon_nav_back"/>
+        <ImageView
+            android:layout_width="52dp"
+            android:layout_height="20dp"
+            android:background="@drawable/icon_nav_logo"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/re_nav_title"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:text="提示"
+        android:background="@drawable/re_tip_round"
+        android:textSize="14sp"
+        android:textColor="#ffffff"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"/>
+
+    <LinearLayout
+        android:layout_width="100dp"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginRight="10dp">
+
+        <ImageView
+            android:id="@+id/re_nav_scan"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:background="@drawable/icon_nav_qrcode"/>
+    </LinearLayout>
+</LinearLayout>

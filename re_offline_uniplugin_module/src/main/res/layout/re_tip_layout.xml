@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:id="@+id/re_tip">
+
+    <TextView
+        android:id="@+id/re_tip_text"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="提示"
+        android:background="@drawable/re_tip_round"
+        android:textSize="14sp"
+        android:textColor="#ffffff"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"/>
+
+</LinearLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 设置背景颜色为黑色，并设置透明度为0.8 -->
+    <solid android:color="#CC000000"/> <!-- CC 是 80% 的不透明度，即 0.8*255=204，000000 是黑色 -->
+    <!-- 设置圆角半径 -->
+    <corners android:radius="6dp"/> <!-- 你可以根据需要调整圆角半径 -->
+</shape>

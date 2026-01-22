@@ -27,10 +27,10 @@ android {
 
 dependencies {
     implementation files('libs\\BlackHole3DAndroid.jar')
-    implementation libs.constraintlayout
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity
+    implementation libs.constraintlayout
 
     //必须添加的依赖
     compileOnly 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
@@ -39,6 +39,10 @@ dependencies {
     compileOnly 'androidx.appcompat:appcompat:1.1.0'
     compileOnly 'androidx.recyclerview:recyclerview:1.1.0'
     compileOnly 'com.alibaba:fastjson:1.2.83'
+
+    // 加载gif使用的第三方库
+    implementation 'com.github.bumptech.glide:glide:4.13.2'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.13.2'
 
     compileOnly fileTree(include: ['uniapp-v8-release.aar'], dir: '../app/libs')
 }
