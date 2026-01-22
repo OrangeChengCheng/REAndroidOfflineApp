@@ -5,7 +5,7 @@
         {
           "type": "module",
           "name": "REUniPlugin-REModule",
-          "class": "com.realengine.offlineuniplugin.REModule"
+          "class": "com.realengine.offlineuniplugin.uni.REModule"
         }
       ]
     }

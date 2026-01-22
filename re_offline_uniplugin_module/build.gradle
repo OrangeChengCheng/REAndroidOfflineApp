@@ -26,6 +26,12 @@ android {
 }
 
 dependencies {
+    implementation files('libs\\BlackHole3DAndroid.jar')
+    implementation libs.constraintlayout
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+
     //必须添加的依赖
     compileOnly 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
     compileOnly 'androidx.core:core:1.1.0'
