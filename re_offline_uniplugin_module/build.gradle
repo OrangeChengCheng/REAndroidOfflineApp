@@ -44,5 +44,8 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.13.2'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.13.2'
 
+    // 添加zip支持，因为原生不支持带密码的zip解压
+    implementation 'net.lingala.zip4j:zip4j:2.11.5'
+
     compileOnly fileTree(include: ['uniapp-v8-release.aar'], dir: '../app/libs')
 }
