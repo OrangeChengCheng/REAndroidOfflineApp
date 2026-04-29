@@ -24,6 +24,10 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- 数据库权限  end -->
 
+    <!-- 访问网络权限  begin -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 访问网络权限  end -->
+
 
 
     <application
@@ -31,7 +35,9 @@
         android:allowClearUserData="true"
         android:icon="@drawable/icon"
         android:label="@string/app_name"
-        android:largeHeap="true" >
+        android:largeHeap="true"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="m">
 
         <activity
             android:name="io.dcloud.PandoraEntry"

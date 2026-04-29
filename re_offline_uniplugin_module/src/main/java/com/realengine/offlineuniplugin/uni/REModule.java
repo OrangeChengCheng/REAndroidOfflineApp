@@ -1,7 +1,5 @@
 package com.realengine.offlineuniplugin.uni;
 
-import static io.dcloud.feature.uniapp.common.TypeUniModuleFactory.TAG;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -12,25 +10,18 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.realengine.offlineuniplugin.engine.REEngineActivity;
 import com.realengine.offlineuniplugin.reclass.FileInfo;
 import com.realengine.offlineuniplugin.retool.DBUtil;
-import com.realengine.offlineuniplugin.retool.FileManager;
+import com.realengine.offlineuniplugin.retool.FileUtil;
 import com.realengine.offlineuniplugin.retool.FilePickerHelper;
 import com.realengine.offlineuniplugin.retool.StoragePermissionHelper;
-import com.realengine.offlineuniplugin.retool.ZipOperator;
+import com.realengine.offlineuniplugin.retool.ZipUtil;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.Inflater;
 
-import BlackHole3D.REDVec3;
-import BlackHole3D.REDVec4;
-import BlackHole3D.REDataSet;
 import io.dcloud.feature.uniapp.annotation.UniJSMethod;
 import io.dcloud.feature.uniapp.bridge.UniJSCallback;
 import io.dcloud.feature.uniapp.common.UniModule;
@@ -191,84 +182,10 @@ public class REModule extends UniModule {
     }
 
 
-    @UniJSMethod(uiThread = false)
-    public void saveUniFile(JSONObject options, UniJSCallback callback) {
-        Log.d(TAG, "************* 【uni -> app】 : (saveUniFile)   " + options);
-        String uniDownloadTempPath = options.getString("uniDownloadTempPath");
-
-        boolean isSuccess = FileManager.copyUniFile(mUniSDKInstance.getContext(), uniDownloadTempPath);
-
-        JSONObject result = new JSONObject();
-        result.put("success", isSuccess);
-        result.put("uniDownloadTempPath", uniDownloadTempPath);
-        // 回调 Uni 端（UniApp 标准回调方式）
-        if(callback != null) {
-            callback.invoke(result);
-        }
-    }
-
-    @UniJSMethod(uiThread = false)
-    public void getLocFileList(JSONObject options, UniJSCallback callback) {
-        Log.d(TAG, "************* 【uni -> app】 : (getLocFileList)   " + options);
-
-        FileManager fileManager = new FileManager(mUniSDKInstance.getContext());
-        List<FileInfo> fileList = fileManager.getLocFileList("");
-//        List<FileInfo> fileList = fileManager.getLocFileList("BlackHole Engine SDK_v3.2.0.3559");
-//        List<FileInfo> fileList = fileManager.getLocFileList("BlackHole Engine SDK_v3.2.0.3559/BlackHole Engine SDK_v3.2.0.3559");
 
 
-        JSONObject result = new JSONObject();
-        result.put("success", fileList.size());
-        result.put("fileList", fileList);
-        // 回调 Uni 端（UniApp 标准回调方式）
-        if(callback != null) {
-            callback.invoke(result);
-        }
-    }
-
-    @UniJSMethod(uiThread = false)
-    public void unzipFile(JSONObject options, UniJSCallback callback) {
-        Log.d(TAG, "************* 【uni -> app】 : (unzipFile)   " + options);
-        String filePath = options.getString("filePath");
-        String fileName = options.getString("fileName");
-
-        ZipOperator zipOperator = new ZipOperator(mUniSDKInstance.getContext());
-
-//        JSONObject zipInfo = zipOperator.readZipCommentsOnly(fileName, "@Yr5!Uk9$Bn3*Lp6#Qj8&Mx2");
-///storage/emulated/0/Android/data/com.realengine.androidofflineapp/files/REOfflineDoc/[model]药店-BIM案例模型.rvt
-
-        String zipFinishFilePath = zipOperator.unzipFile(fileName, "@Yr5!Uk9$Bn3*Lp6#Qj8&Mx2");
-
-        FileManager fileManager = new FileManager(mUniSDKInstance.getContext());
-        List<FileInfo> fileList = fileManager.getFileList(zipFinishFilePath);
-
-        JSONObject result = new JSONObject();
-        result.put("success", zipFinishFilePath.length());
-        result.put("fileList", fileList);
-        // 回调 Uni 端（UniApp 标准回调方式）
-        if(callback != null) {
-            callback.invoke(result);
-        }
-    }
 
 
-    @UniJSMethod(uiThread = false)
-    public void delFile(JSONObject options, UniJSCallback callback) {
-        Log.d(TAG, "************* 【uni -> app】 : (delFile)   " + options);
-
-        FileManager fileManager = new FileManager(mUniSDKInstance.getContext());
-
-        boolean isSuccess = FileManager.deleteAllFiles(fileManager.getAppLocFile(""), true);
-
-        List<FileInfo> fileList = fileManager.getLocFileList("");
-        JSONObject result = new JSONObject();
-        result.put("success", isSuccess);
-        result.put("fileList", fileList);
-        // 回调 Uni 端（UniApp 标准回调方式）
-        if(callback != null) {
-            callback.invoke(result);
-        }
-    }
 
     @UniJSMethod(uiThread = false)
     public void selFile(JSONObject options, UniJSCallback callback) {
@@ -330,32 +247,10 @@ public class REModule extends UniModule {
 
 
 
-    @UniJSMethod(uiThread = false)
-    public void useFileUniToApp(JSONObject options, UniJSCallback callback) {
-        Log.d(TAG, "************* 【uni -> app】 : (useFileUniToApp)   " + options);
-        String type = options.containsKey("type") ? String.valueOf(options.get("type")) : "";
-        JSONObject json_data = options.containsKey("data") ? options.getObject("data", options.getClass()) : null;
-
-        JSONObject result = new JSONObject();
-        FileManager fileManager = new FileManager(mUniSDKInstance.getContext());
-        if (type.equals("delFile")) {
-            String filePath = json_data.containsKey("filePath") ? String.valueOf(json_data.get("filePath")) : "";
-            boolean isSuccess = FileManager.deleteAllFiles(filePath, true);
-            result.put("success", isSuccess);
-
-        } else if (type.equals("getAllSubFileList")) {
-            String filePath = json_data.containsKey("filePath") ? String.valueOf(json_data.get("filePath")) : "";
-            List<FileInfo> fileList = fileManager.getFileSubList(filePath);
-            result.put("success", fileList.size() > 0 ? true : false);
-            result.put("data", fileList);
-        }
-
-        if(callback != null) {
-            callback.invoke(result);
-        }
-    }
 
 
+    /** ------------ 引擎操作 -----------*/
+    // 引擎查看本地资源
     @UniJSMethod(uiThread = false)
     public void showOfflineEngine(JSONObject options, UniJSCallback callback) {
         Log.d(TAG, "************* 【uni -> app】 : (showOfflineEngine)   " + options);
@@ -405,28 +300,179 @@ public class REModule extends UniModule {
     }
 
 
+
+    /** ------------ 文件操作 -----------*/
+    // 获取指定文件夹下所有文件列表
+    @UniJSMethod(uiThread = false)
+    public void fileGetAllChild(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (fileGetAllChild)   " + options);
+        String filePath = options.getString("filePath");
+
+        List<FileInfo> fileList = FileUtil.getAllChild(filePath);
+
+        JSONObject result = new JSONObject();
+        result.put("success", fileList.size() > 0 ? true : false);
+        result.put("data", fileList);
+        if(callback != null) {
+            callback.invoke(result);
+        }
+    }
+
+    // 递归删除指定路径下的所有内容
+    @UniJSMethod(uiThread = false)
+    public void fileDelAllSubFile(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (fileDelAllSubFile)   " + options);
+        String filePath = options.getString("filePath");
+        boolean keepDir = options.getBoolean("keepDir");
+
+        boolean isSuccess = FileUtil.deleteAllFiles(filePath, keepDir);
+
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("data", isSuccess);
+        if(callback != null) {
+            callback.invoke(result);
+        }
+    }
+
+    // 判断文件是否存在
+    @UniJSMethod(uiThread = false)
+    public void fileExist(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (fileExist)   " + options);
+        String filePath = options.getString("filePath");
+
+        boolean isExist = FileUtil.fileExist(filePath);
+
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("data", isExist);
+        if(callback != null) {
+            callback.invoke(result);
+        }
+    }
+
+    // 获取文件父级
+    @UniJSMethod(uiThread = false)
+    public void fileGetParent(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (fileGetParent)   " + options);
+        String filePath = options.getString("filePath");
+
+        FileInfo parent = FileUtil.getParentFile(filePath);
+
+        JSONObject result = new JSONObject();
+        result.put("success", parent != null);
+        result.put("data", parent);
+        if(callback != null) {
+            callback.invoke(result);
+        }
+    }
+
+    // 获取文件夹内指定后缀的文件列表
+    @UniJSMethod(uiThread = false)
+    public void fileGetChildBySuffix(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (fileGetChildBySuffix)   " + options);
+        String filePath = options.getString("filePath");
+        String suffix = options.getString("suffix");
+
+        List<FileInfo> fileList = FileUtil.getChildFilesBySuffix(filePath, suffix);
+
+        JSONObject result = new JSONObject();
+        result.put("success", fileList.size() > 0 ? true : false);
+        result.put("data", fileList);
+        if(callback != null) {
+            callback.invoke(result);
+        }
+    }
+
+    // 获取沙盒默认存储路径（外部存储）
+    @UniJSMethod(uiThread = false)
+    public void fileGetAppRootFolder(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (fileGetAppResFolder)   " + options);
+        FileInfo folder = FileUtil.getAppRootFolder(mUniSDKInstance.getContext());
+
+        JSONObject result = new JSONObject();
+        result.put("success", folder != null);
+        result.put("data", folder);
+        if(callback != null) {
+            callback.invoke(result);
+        }
+    }
+
+    // 拷贝单个文件（外部存储）
+    @UniJSMethod(uiThread = false)
+    public void fileCopyFile(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (fileCopyFile)   " + options);
+        String sourceFilePath = options.getString("sourceFilePath");
+        String targetFilePath = options.getString("targetFilePath");
+
+        boolean isSuccess = FileUtil.copyFile(sourceFilePath, targetFilePath);
+
+        JSONObject result = new JSONObject();
+        result.put("success", isSuccess);
+        result.put("data", isSuccess);
+        if(callback != null) {
+            callback.invoke(result);
+        }
+    }
+
+
+
+    /** ------------ 压缩包操作 -----------*/
+    // 解压ZIP文件（支持加密）
+    @UniJSMethod(uiThread = false)
+    public void unzipFile(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (unzipFile)   " + options);
+        String filePath = options.getString("filePath");
+        String password = options.getString("password");
+
+        String zipFinishFilePath = ZipUtil.unzipFile(filePath, password);
+
+        JSONObject result = new JSONObject();
+        result.put("success", zipFinishFilePath.length() > 0);
+        result.put("data", zipFinishFilePath);
+        if(callback != null) {
+            callback.invoke(result);
+        }
+    }
+
+    // 仅读取ZIP注释信息（不解压/支持加密）
+    @UniJSMethod(uiThread = false)
+    public void zipGetComments(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (zipGetComments)   " + options);
+        String filePath = options.getString("filePath");
+        String password = options.getString("password");
+
+        JSONObject zipFileComments = ZipUtil.readZipCommentsOnly(filePath, password);
+
+        JSONObject result = new JSONObject();
+        result.put("success", zipFileComments.isEmpty());
+        result.put("data", zipFileComments);
+        if(callback != null) {
+            callback.invoke(result);
+        }
+    }
+
+
+
+    /** ------------ 数据库操作 -----------*/
+    // 数据查询
     @UniJSMethod(uiThread = false)
     public void dbQuery(JSONObject options, UniJSCallback callback) {
         Log.d(TAG, "************* 【uni -> app】 : (dbQuery)   " + options);
-
         String dbPath = options.getString("dbPath");
         String sql = options.getString("sql");
-
-//        ZipOperator zipOperator = new ZipOperator(mUniSDKInstance.getContext());
-//        JSONObject zipInfo = zipOperator.readZipCommentsOnly(fileName + ".zip", "@Yr5!Uk9$Bn3*Lp6#Qj8&Mx2");
-//        String Id = zipInfo.getObject("globalComment", JSONObject.class).getString("Id");
 
         List<Map<String, Object>> data = DBUtil.queryToList(dbPath, sql, null);
 
         JSONObject result = new JSONObject();
         result.put("success", data.isEmpty() ? false : true);
         result.put("data", data);
-        // 回调 Uni 端（UniApp 标准回调方式）
         if(callback != null) {
             callback.invoke(result);
         }
     }
 
+    // 查表是否存在
     @UniJSMethod(uiThread = false)
     public void dbTableExist(JSONObject options, UniJSCallback callback) {
         Log.d(TAG, "************* 【uni -> app】 : (dbTableExist)   " + options);
@@ -434,9 +480,10 @@ public class REModule extends UniModule {
         String tableName = options.getString("tableName");
 
         boolean isExist = DBUtil.isTableExists(dbPath, tableName);
+
         JSONObject result = new JSONObject();
+        result.put("success", true);
         result.put("data", isExist);
-        // 回调 Uni 端（UniApp 标准回调方式）
         if(callback != null) {
             callback.invoke(result);
         }

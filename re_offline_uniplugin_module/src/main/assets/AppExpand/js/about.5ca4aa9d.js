@@ -1,0 +1,1 @@
+"use strict";(self["webpackChunktest"]=self["webpackChunktest"]||[]).push([[594],{571:function(t,n,u){u.r(n),u.d(n,{default:function(){return l}});var e=u(641);const s={class:"about"},a=(0,e.Lk)("h1",null,"This is an about page",-1),r=[a];function c(t,n){return(0,e.uX)(),(0,e.CE)("div",s,r)}var i=u(262);const o={},f=(0,i.A)(o,[["render",c]]);var l=f}}]);
