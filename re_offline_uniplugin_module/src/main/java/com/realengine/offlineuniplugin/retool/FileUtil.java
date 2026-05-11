@@ -46,11 +46,6 @@ public class FileUtil {
      */
     private static final int BUFFER_SIZE = 1024 * 4;
 
-    /**
-     * 构造方法
-     *
-     * @param context 上下文，内部自动转为ApplicationContext
-     */
     public FileUtil() {
 
     }
@@ -85,6 +80,41 @@ public class FileUtil {
     public static boolean fileExist(String filePath) {
         File file = new File(filePath);
         return file.exists();
+    }
+
+    /**
+     * 创建文件夹
+     *
+     * @param folderPath 完整的文件夹路径
+     * @return 成功返回true，失败返回false
+     */
+    public static boolean fileCreateFolder(String folderPath) {
+        // 1. 校验路径为空，直接返回失败
+        if (folderPath == null || folderPath.trim().isEmpty()) {
+            Log.e(TAG, "文件夹创建失败：路径不能为空");
+            return false;
+        }
+
+        // 2. 构建文件夹对象
+        File folder = new File(folderPath);
+
+        // 3. 判断文件夹是否已存在
+        if (folder.exists() && folder.isDirectory()) {
+            Log.d(TAG, "文件夹已存在：" + folderPath);
+            return true;
+        }
+
+        // 4. 创建文件夹（mkdirs() 自动创建多级父目录，对应iOS的自动创建中间目录）
+        boolean isSuccess = folder.mkdirs();
+
+        // 5. 日志输出结果
+        if (isSuccess) {
+            Log.d(TAG, "文件夹创建成功：" + folderPath);
+        } else {
+            Log.e(TAG, "文件夹创建失败：" + folderPath);
+        }
+
+        return isSuccess;
     }
 
     /**

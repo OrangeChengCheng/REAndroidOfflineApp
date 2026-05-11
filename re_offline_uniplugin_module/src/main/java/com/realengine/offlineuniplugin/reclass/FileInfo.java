@@ -12,7 +12,7 @@ public class FileInfo {
     public long fileSize;         // 文件大小（字节）
     public String fileSizeDesc;   // 文件大小描述（如：42.7MB）
     public String fileType;       // 文件类型（后缀，文件夹为"directory"）
-    public boolean isDirectory;   // 是否是文件夹
+    public boolean directory;   // 是否是文件夹
     public long lastModifyTime;   // 最后修改时间（时间戳）
 
     // 构造方法
@@ -21,9 +21,9 @@ public class FileInfo {
         this.filePath = file.getAbsolutePath();
         this.fileSize = file.length();
         this.fileSizeDesc = formatFileSize(fileSize);
-        this.isDirectory = file.isDirectory();
+        this.directory = file.isDirectory();
         this.lastModifyTime = file.lastModified();
-        this.fileType = isDirectory ? "directory" : getFileType(fileName);
+        this.fileType = directory ? "directory" : getFileType(fileName);
     }
 
     // 格式化文件大小（字节 → 易读格式）
@@ -48,7 +48,7 @@ public class FileInfo {
     public long getFileSize() { return fileSize; }
     public String getFileSizeDesc() { return fileSizeDesc; }
     public String getFileType() { return fileType; }
-    public boolean isDirectory() { return isDirectory; }
+    public boolean getDirectory() { return directory; }
     public long getLastModifyTime() { return lastModifyTime; }
 
     @Override
@@ -58,7 +58,7 @@ public class FileInfo {
                 ", filePath='" + filePath + '\'' +
                 ", fileSizeDesc='" + fileSizeDesc + '\'' +
                 ", fileType='" + fileType + '\'' +
-                ", isDirectory=" + isDirectory +
+                ", directory=" + directory +
                 '}';
     }
 }

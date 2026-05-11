@@ -251,40 +251,11 @@ public class REModule extends UniModule {
 
     /** ------------ 引擎操作 -----------*/
     // 引擎查看本地资源
-    @UniJSMethod(uiThread = false)
+    @UniJSMethod(uiThread = true)
     public void showOfflineEngine(JSONObject options, UniJSCallback callback) {
         Log.d(TAG, "************* 【uni -> app】 : (showOfflineEngine)   " + options);
 
         String jsonStr = JSONObject.toJSONString(options);
-
-//        String fileName = options.getString("fileName");
-//        String filePath = options.getString("filePath");
-//        Integer type = options.getInteger("type");
-//
-//        FileManager fileManager = new FileManager(mUniSDKInstance.getContext());
-//        List<FileInfo> fileList = fileManager.getFileSubList(filePath);
-//
-//        if (fileList.isEmpty()) return;
-//
-//        List<REDataSet> arrDataSet =new ArrayList<>();
-//        if (type == 0) {
-//            BlackHole3D.REDataSet dataSet = new BlackHole3D.REDataSet();
-//            dataSet.dataSetId = fileName;
-//            dataSet.resourcesAddress = filePath + "/res";
-//            arrDataSet.add(dataSet);
-//        } else  {
-//            List<String> resFolderNameList = FileManager.getSubFolderNames(filePath + "/res");
-//            for (String resFolderName : resFolderNameList) {
-//                BlackHole3D.REDataSet dataSet = new BlackHole3D.REDataSet();
-//                dataSet.dataSetId = resFolderName;
-//                dataSet.resourcesAddress = filePath + "/res/" + resFolderName;
-//                arrDataSet.add(dataSet);
-//            }
-//        }
-//
-//        JSONObject data = new JSONObject();
-//        data.put("data", arrDataSet);
-//        String jsonStr = JSON.toJSONString(data);
 
         if(mUniSDKInstance != null && mUniSDKInstance.getContext() instanceof Activity) {
             try {
@@ -414,6 +385,23 @@ public class REModule extends UniModule {
             callback.invoke(result);
         }
     }
+
+    // 创建文件夹（外部存储）
+    @UniJSMethod(uiThread = false)
+    public void fileCreateFolder(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (fileCreateFolder)   " + options);
+        String folderPath = options.getString("folderPath");
+
+        boolean isSuccess = FileUtil.fileCreateFolder(folderPath);
+
+        JSONObject result = new JSONObject();
+        result.put("success", isSuccess);
+        result.put("data", isSuccess);
+        if(callback != null) {
+            callback.invoke(result);
+        }
+    }
+
 
 
 

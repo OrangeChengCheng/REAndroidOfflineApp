@@ -19,10 +19,10 @@
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <!-- 存储权限  end -->
 
-    <!-- 数据库权限  begin -->
+    <!-- 文件/数据库权限  begin -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <!-- 数据库权限  end -->
+    <!-- 文件/数据库权限  end -->
 
     <!-- 访问网络权限  begin -->
     <uses-permission android:name="android.permission.INTERNET" />

@@ -72,6 +72,7 @@ public class REBridgeData {
     public String dbPath = "";
     public String sql = "";
     public String tableName = "";
+    public String folderPath = "";
 
 
 
@@ -630,5 +631,13 @@ public class REBridgeData {
 
     public void setTableName(String tableName) {
         this.tableName = tableName;
+    }
+
+    public String getFolderPath() {
+        return folderPath;
+    }
+
+    public void setFolderPath(String folderPath) {
+        this.folderPath = folderPath;
     }
 }
