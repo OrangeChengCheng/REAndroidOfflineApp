@@ -1,5 +1,9 @@
 package com.realengine.offlineuniplugin.reclass;
 
+import android.net.Uri;
+
+import androidx.documentfile.provider.DocumentFile;
+
 import java.io.File;
 
 /**
@@ -16,6 +20,7 @@ public class FileInfo {
     public long lastModifyTime;   // 最后修改时间（时间戳）
 
     // 构造方法
+    public FileInfo() {}
     public FileInfo(File file) {
         this.fileName = file.getName();
         this.filePath = file.getAbsolutePath();
@@ -24,6 +29,18 @@ public class FileInfo {
         this.directory = file.isDirectory();
         this.lastModifyTime = file.lastModified();
         this.fileType = directory ? "directory" : getFileType(fileName);
+    }
+
+    public FileInfo(DocumentFile documentFile) {
+        this.fileName = documentFile.getName();
+        this.directory = documentFile.isDirectory();
+        this.fileSize = documentFile.length();
+        this.fileSizeDesc = formatFileSize(fileSize);
+        this.lastModifyTime = documentFile.lastModified();
+        this.fileType = directory ? "directory" : getFileType(fileName);
+
+        Uri uri = documentFile.getUri();
+        this.filePath = uri.toString();
     }
 
     // 格式化文件大小（字节 → 易读格式）

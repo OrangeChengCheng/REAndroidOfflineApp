@@ -1,7 +1,6 @@
 package com.realengine.offlineuniplugin.uni;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,9 +12,10 @@ import androidx.annotation.NonNull;
 import com.alibaba.fastjson.JSONObject;
 import com.realengine.offlineuniplugin.engine.REEngineActivity;
 import com.realengine.offlineuniplugin.reclass.FileInfo;
-import com.realengine.offlineuniplugin.retool.DBUtil;
+import com.realengine.offlineuniplugin.retool.FileManager;
 import com.realengine.offlineuniplugin.retool.FileUtil;
-import com.realengine.offlineuniplugin.retool.FilePickerHelper;
+import com.realengine.offlineuniplugin.retool.FileManagerInterface;
+import com.realengine.offlineuniplugin.retool.SafUtil;
 import com.realengine.offlineuniplugin.retool.StoragePermissionHelper;
 import com.realengine.offlineuniplugin.retool.ZipUtil;
 
@@ -68,7 +68,6 @@ public class REModule extends UniModule {
     public interface REModuleCallback {
         void onTaskComplete(JSONObject jsonObject);
     }
-    private FilePickerHelper.OnFileSelectedListener fileSelectListener;
 
     public static void registerUniToAppMsg(REModuleCallback callback) {
         REModule.uniToAppCallBack = callback;
@@ -187,66 +186,6 @@ public class REModule extends UniModule {
 
 
 
-    @UniJSMethod(uiThread = false)
-    public void selFile(JSONObject options, UniJSCallback callback) {
-        Log.d(TAG, "************* 【uni -> app】 : (selFile)   " + options);
-
-        Context context = mUniSDKInstance.getContext();
-        if (!(context instanceof Activity)) {
-            Log.e(TAG, "Context is not an Activity");
-            // 可以回调给 JS 层错误
-            return;
-        }
-        final Activity activity = (Activity) context;
-
-        // 设置回调监听
-        fileSelectListener = new FilePickerHelper.OnFileSelectedListener() {
-            @Override
-            public void onSuccess(FilePickerHelper.PickerFile file) {
-                Log.d(TAG, "选择成功: " + file.toString());
-                // 在这里通过 JS 回调返回结果给前端
-                // 例如：mUniSDKInstance.fireEvent(...) 或使用 callback
-            }
-
-            @Override
-            public void onError(String error) {
-                Log.e(TAG, "选择失败: " + error);
-            }
-
-            @Override
-            public void onCancel() {
-                Log.d(TAG, "用户取消选择");
-            }
-        };
-
-        // 在 UI 线程启动选择器
-        activity.runOnUiThread(() -> {
-            FilePickerHelper.startPickSingleFile(activity, new String[]{"*/*"});
-        });
-
-
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FilePickerHelper.REQUEST_CODE_PICK_SINGLE_FILE) {
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                FilePickerHelper.PickerFile file = FilePickerHelper.getFileFromResult(mUniSDKInstance.getContext(), data);
-                if (file != null && fileSelectListener != null) {
-                    fileSelectListener.onSuccess(file);
-                } else if (fileSelectListener != null) {
-                    fileSelectListener.onError("无法获取文件信息");
-                }
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-                if (fileSelectListener != null) fileSelectListener.onCancel();
-            }
-            fileSelectListener = null; // 清空监听
-        }
-    }
-
-
-
 
 
     /** ------------ 引擎操作 -----------*/
@@ -271,15 +210,51 @@ public class REModule extends UniModule {
     }
 
 
+    /** ------------ 文件操作（SAF） -----------*/
+    // 回调接收
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // 转发结果给SafUtil，自动触发回调
+        SafUtil.handleActivityResult(requestCode, resultCode, data, mUniSDKInstance.getContext());
+    }
 
-    /** ------------ 文件操作 -----------*/
+    // 授权指定的文件夹
+    @UniJSMethod(uiThread = false)
+    public void safAuthorDocument(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (safAuthorDocument)   " + options);
+
+        final Activity activity = (Activity) mUniSDKInstance.getContext();
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                SafUtil.openRootFolderPicker(activity, new SafUtil.SimpleFolderPickCallback() {
+                    @Override
+                    public void onSuccess(String rootFolderPath) {
+                        JSONObject result = new JSONObject();
+                        result.put("success", rootFolderPath.length() > 0 ? true : false);
+                        result.put("data", rootFolderPath);
+                        if(callback != null) {
+                            callback.invoke(result);
+                        }
+                    }
+                });
+            }
+        });
+
+    }
+
+
+    /** ------------ 文件操作（沙盒） -----------*/
     // 获取指定文件夹下所有文件列表
     @UniJSMethod(uiThread = false)
     public void fileGetAllChild(JSONObject options, UniJSCallback callback) {
         Log.d(TAG, "************* 【uni -> app】 : (fileGetAllChild)   " + options);
         String filePath = options.getString("filePath");
 
-        List<FileInfo> fileList = FileUtil.getAllChild(filePath);
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), filePath);
+        List<FileInfo> fileList = operator.getAllChild(filePath);
 
         JSONObject result = new JSONObject();
         result.put("success", fileList.size() > 0 ? true : false);
@@ -296,7 +271,9 @@ public class REModule extends UniModule {
         String filePath = options.getString("filePath");
         boolean keepDir = options.getBoolean("keepDir");
 
-        boolean isSuccess = FileUtil.deleteAllFiles(filePath, keepDir);
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), filePath);
+        boolean isSuccess = operator.deleteAllFiles(filePath, keepDir);
+//        boolean isSuccess = FileUtil.deleteAllFiles(filePath, keepDir);
 
         JSONObject result = new JSONObject();
         result.put("success", true);
@@ -312,7 +289,8 @@ public class REModule extends UniModule {
         Log.d(TAG, "************* 【uni -> app】 : (fileExist)   " + options);
         String filePath = options.getString("filePath");
 
-        boolean isExist = FileUtil.fileExist(filePath);
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), filePath);
+        boolean isExist = operator.fileExist(filePath);
 
         JSONObject result = new JSONObject();
         result.put("success", true);
@@ -345,7 +323,9 @@ public class REModule extends UniModule {
         String filePath = options.getString("filePath");
         String suffix = options.getString("suffix");
 
-        List<FileInfo> fileList = FileUtil.getChildFilesBySuffix(filePath, suffix);
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), filePath);
+        List<FileInfo> fileList = operator.getChildFilesBySuffix(filePath, suffix);
+//        List<FileInfo> fileList = FileUtil.getChildFilesBySuffix(filePath, suffix);
 
         JSONObject result = new JSONObject();
         result.put("success", fileList.size() > 0 ? true : false);
@@ -358,8 +338,10 @@ public class REModule extends UniModule {
     // 获取沙盒默认存储路径（外部存储）
     @UniJSMethod(uiThread = false)
     public void fileGetAppRootFolder(JSONObject options, UniJSCallback callback) {
-        Log.d(TAG, "************* 【uni -> app】 : (fileGetAppResFolder)   " + options);
-        FileInfo folder = FileUtil.getAppRootFolder(mUniSDKInstance.getContext());
+        Log.d(TAG, "************* 【uni -> app】 : (fileGetAppRootFolder)   " + options);
+
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext());
+        FileInfo folder = operator.getAppRootFolder(mUniSDKInstance.getContext());
 
         JSONObject result = new JSONObject();
         result.put("success", folder != null);
@@ -376,7 +358,8 @@ public class REModule extends UniModule {
         String sourceFilePath = options.getString("sourceFilePath");
         String targetFilePath = options.getString("targetFilePath");
 
-        boolean isSuccess = FileUtil.copyFile(sourceFilePath, targetFilePath);
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), sourceFilePath);
+        boolean isSuccess = operator.copyFile(sourceFilePath, targetFilePath);
 
         JSONObject result = new JSONObject();
         result.put("success", isSuccess);
@@ -384,6 +367,43 @@ public class REModule extends UniModule {
         if(callback != null) {
             callback.invoke(result);
         }
+    }
+
+    // 拷贝文件夹（递归）
+    @UniJSMethod(uiThread = false)
+    public void fileCopyFolder(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (fileCopyFolder)   " + options);
+        String sourceFolderPath = options.getString("sourceFolderPath");
+        String targetFolderPath = options.getString("targetFolderPath");
+
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), sourceFolderPath);
+        operator.copyFolder(sourceFolderPath, targetFolderPath, new SafUtil.SimpleCopyProgressCallback() {
+            @Override
+            public void onProgress(int processed, int totalFiles, String currentFileName) {
+                JSONObject result = new JSONObject()
+                        .fluentPut("success", true)
+                        .fluentPut("data", new JSONObject()
+                                .fluentPut("status", "progress")
+                                .fluentPut("data", new JSONObject()
+                                        .fluentPut("processed", processed)
+                                        .fluentPut("totalFiles", totalFiles)
+                                        .fluentPut("currentFileName", currentFileName)
+                                )
+                        );
+                if(callback != null) { callback.invokeAndKeepAlive(result); }
+            }
+
+            @Override
+            public void onSuccess(String destPath) {
+                JSONObject result = new JSONObject()
+                        .fluentPut("success", true)
+                        .fluentPut("data", new JSONObject()
+                                .fluentPut("status", "success")
+                                .fluentPut("data", destPath)
+                        );
+                if(callback != null) { callback.invokeAndKeepAlive(result); }
+            }
+        });
     }
 
     // 创建文件夹（外部存储）
@@ -392,7 +412,8 @@ public class REModule extends UniModule {
         Log.d(TAG, "************* 【uni -> app】 : (fileCreateFolder)   " + options);
         String folderPath = options.getString("folderPath");
 
-        boolean isSuccess = FileUtil.fileCreateFolder(folderPath);
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), folderPath);
+        boolean isSuccess = operator.fileCreateFolder(folderPath);
 
         JSONObject result = new JSONObject();
         result.put("success", isSuccess);
@@ -401,6 +422,7 @@ public class REModule extends UniModule {
             callback.invoke(result);
         }
     }
+
 
 
 
@@ -413,14 +435,34 @@ public class REModule extends UniModule {
         String filePath = options.getString("filePath");
         String password = options.getString("password");
 
-        String zipFinishFilePath = ZipUtil.unzipFile(filePath, password);
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), filePath);
+        operator.unzipFileAsync(filePath, password, new ZipUtil.SimpleUnzipProgressCallback() {
+            @Override
+            public void onProgress(int processed, int totalEntries, String entryName) {
+                JSONObject result = new JSONObject()
+                        .fluentPut("success", true)
+                        .fluentPut("data", new JSONObject()
+                                .fluentPut("status", "progress")
+                                .fluentPut("data", new JSONObject()
+                                        .fluentPut("processed", processed)
+                                        .fluentPut("totalEntries", totalEntries)
+                                        .fluentPut("entryName", entryName)
+                                )
+                        );
+                if(callback != null) { callback.invokeAndKeepAlive(result); }
+            }
 
-        JSONObject result = new JSONObject();
-        result.put("success", zipFinishFilePath.length() > 0);
-        result.put("data", zipFinishFilePath);
-        if(callback != null) {
-            callback.invoke(result);
-        }
+            @Override
+            public void onSuccess(String destPath) {
+                JSONObject result = new JSONObject()
+                        .fluentPut("success", true)
+                        .fluentPut("data", new JSONObject()
+                                .fluentPut("status", "success")
+                                .fluentPut("data", destPath)
+                        );
+                if(callback != null) { callback.invokeAndKeepAlive(result); }
+            }
+        });
     }
 
     // 仅读取ZIP注释信息（不解压/支持加密）
@@ -428,9 +470,10 @@ public class REModule extends UniModule {
     public void zipGetComments(JSONObject options, UniJSCallback callback) {
         Log.d(TAG, "************* 【uni -> app】 : (zipGetComments)   " + options);
         String filePath = options.getString("filePath");
-        String password = options.getString("password");
 
-        JSONObject zipFileComments = ZipUtil.readZipCommentsOnly(filePath, password);
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), filePath);
+        JSONObject zipFileComments = operator.readZipCommentsOnly(filePath);
+//        JSONObject zipFileComments = ZipUtil.readZipCommentsOnly(filePath, password);
 
         JSONObject result = new JSONObject();
         result.put("success", zipFileComments.isEmpty());
@@ -450,7 +493,9 @@ public class REModule extends UniModule {
         String dbPath = options.getString("dbPath");
         String sql = options.getString("sql");
 
-        List<Map<String, Object>> data = DBUtil.queryToList(dbPath, sql, null);
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), dbPath);
+        List<Map<String, Object>> data = operator.queryToList(dbPath, sql, null);
+//        List<Map<String, Object>> data = DBUtil.queryToList(dbPath, sql, null);
 
         JSONObject result = new JSONObject();
         result.put("success", data.isEmpty() ? false : true);
@@ -467,7 +512,9 @@ public class REModule extends UniModule {
         String dbPath = options.getString("dbPath");
         String tableName = options.getString("tableName");
 
-        boolean isExist = DBUtil.isTableExists(dbPath, tableName);
+        FileManagerInterface operator = FileManager.getOperator(mUniSDKInstance.getContext(), dbPath);
+        boolean isExist = operator.isTableExists(dbPath, tableName);
+//        boolean isExist = DBUtil.isTableExists(dbPath, tableName);
 
         JSONObject result = new JSONObject();
         result.put("success", true);
