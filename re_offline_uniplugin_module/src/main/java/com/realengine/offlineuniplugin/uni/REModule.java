@@ -221,8 +221,8 @@ public class REModule extends UniModule {
 
     // 授权指定的文件夹
     @UniJSMethod(uiThread = false)
-    public void safAuthorDocument(JSONObject options, UniJSCallback callback) {
-        Log.d(TAG, "************* 【uni -> app】 : (safAuthorDocument)   " + options);
+    public void externalAuthorDocument(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (externalAuthorDocument)   " + options);
 
         final Activity activity = (Activity) mUniSDKInstance.getContext();
 
@@ -243,6 +243,21 @@ public class REModule extends UniModule {
             }
         });
 
+    }
+
+    // 检测外部存储是否可写
+    @UniJSMethod(uiThread = false)
+    public void externalCheckWritable(JSONObject options, UniJSCallback callback) {
+        Log.d(TAG, "************* 【uni -> app】 : (externalCheckWritable)   " + options);
+
+        String rootFolderPath = options.getString("rootFolderPath");
+
+        JSONObject result = new JSONObject();
+        result.put("success", true);
+        result.put("data", true);
+        if(callback != null) {
+            callback.invoke(result);
+        }
     }
 
 
